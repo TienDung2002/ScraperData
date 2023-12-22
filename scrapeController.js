@@ -7,9 +7,10 @@ const scrapeController = async (browserInstance) => {
     try {
         let browser = await browserInstance;
         // Gọi hàm cào ở scraper.js
-        let categories = await scraper(browser, url);
+        let categories = await scraper.scrapeCategory(browser, url);
         const selectedCategories = categories.filter((category, index) => indexs.some(i => i === index))
-        console.log(selectedCategories);
+
+        await scraper.scraperDetail(browser, selectedCategories[0].link)
 
     } catch (e) {
         console.log("Lỗi ở scrapController => " + e);
