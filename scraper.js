@@ -55,7 +55,8 @@ const scraperDetail = (browser, url) => new Promise(async(resolve, reject) => {
         await newPage.waitForSelector('#categories-content')
         console.log('>> Đã load xong #categories-content...');
 
-        const scapeData = {}
+        // biến sẽ chứa data của nguyên 1 trang detail
+        const scapeData = {} 
     
         // lấy header data
         const headerData = await newPage.$$eval('.head .title', (el) => {
@@ -65,27 +66,39 @@ const scraperDetail = (browser, url) => new Promise(async(resolve, reject) => {
         })
         scapeData.header = headerData
 
-        // lấy content
+        // lấy content item trong 1 list-item
         const detailLinks = await newPage.$$eval('.content .product-item', (els) => {
             detailLinks = els.map((el) => {
                 return el.querySelector('a').href
             })
             return detailLinks
         })
+        console.log('>> Đã lấy xong tất cả các sản phẩm');
 
-        // Hàm truy cập vào link từ lấy content
+        // Hàm truy cập vào link từ lấy content (truy cập vào từng item đã lấy bên detailLink)
         const accessLink = async (link) => new Promise(async(resolve, reject) => {
             try {
                 let openNewTab = await browser.newPage()
                 await openNewTab.goto(link)
                 console.log('>> Đang truy cập: ' + link);
-                await openNewTab.waitForSelector('.products')
-                console.log('>> Đã load xong .products');
+                await openNewTab.waitForSelector('.comment-list')
+                console.log('>> Đã load .comment-list');
+                
+                const images = await newPage.$$eval('.comment-item', (els) => {
+                    return els.map(el => {
+                        return {
+                            name_user: el.querySelector(' .comment-info .comment-title > p').innerText,
+                            comment: el.querySelector('comment-info .comment-content').innerText
+                        }
+                    })
+                })
+                console.log(images);
+
                 await openNewTab.close()
                 console.log('>> Đã đóng tab: ' + link);
                 resolve()
             } catch (error) {
-                console.log('Truy cập vào link từ content lỗi: ' + error);
+                console.log('Truy cập vào link từ content lỗi => ' + error);
                 reject(error)
             }
         })
